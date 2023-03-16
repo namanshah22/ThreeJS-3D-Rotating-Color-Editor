@@ -1,84 +1,69 @@
-// Initialize variables
-let scene, camera, renderer, controls, shirt;
+import * as THREE from './three.m.js';
+//import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
-// Define the colors array
-const colors = [  { name: 'white', value: 0xffffff },  { name: 'black', value: 0x000000 },  { name: 'red', value: 0xff0000 },  { name: 'green', value: 0x00ff00 },  { name: 'blue', value: 0x0000ff }];
+let camera, scene, renderer, controls, shirt;
+const colorPicker = document.getElementById("color-picker");
 
-// Define the function to create the shirt
-function createShirt(color) {
-  // Create the shirt geometry
-  const geometry = new THREE.BoxGeometry(1, 1.5, 0.01);
-
-  // Create the shirt material
-  const material = new THREE.MeshStandardMaterial({ color: color.value });
-
-  // Create the shirt mesh
-  const mesh = new THREE.Mesh(geometry, material);
-
-  // Add the mesh to the scene
-  scene.add(mesh);
-
-  // Set the global shirt variable
-  shirt = mesh;
-}
-
-// Define the function to change the shirt color
-function changeShirtColor(color) {
-  // Set the shirt material color
-  shirt.material.color.set(color.value);
-}
-
-// Define the function to create the scene
+// initialize function
 function init() {
-  // Create the scene
+  // create camera
+  camera = new THREE.PerspectiveCamera(
+    75,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    1000
+  );
+  camera.position.z = 5;
+
+  // create scene
   scene = new THREE.Scene();
 
-  // Create the camera
-  camera = new THREE.PerspectiveCamera(75, window.innerWidth / window.innerHeight, 0.1, 1000);
-  camera.position.z = 2;
+  // create shirt
+  const loader = new GLTFLoader();
+  loader.load(
+    "https://threejsfundamentals.org/threejs/resources/models/cartoon_lowpoly_small_city_free_pack/scene.gltf",
+    (gltf) => {
+      shirt = gltf.scene;
+      shirt.traverse(function (child) {
+        if (child.isMesh) {
+          child.material.color = new THREE.Color(0xffffff);
+        }
+      });
+      scene.add(shirt);
+    }
+  );
 
-  // Create the renderer
-  renderer = new THREE.WebGLRenderer();
+  // create light
+  const light = new THREE.PointLight(0xffffff, 1, 100);
+  light.position.set(0, 0, 10);
+  scene.add(light);
+
+  // create renderer
+  renderer = new THREE.WebGLRenderer({ canvas: document.getElementById("canvas") });
   renderer.setSize(window.innerWidth, window.innerHeight);
-  document.body.appendChild(renderer.domElement);
 
-  // Create the controls
+  // create controls
   controls = new THREE.OrbitControls(camera, renderer.domElement);
 
-  // Create the ambient light
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.5);
-  scene.add(ambientLight);
-
-  // Create the directional light
-  const directionalLight = new THREE.DirectionalLight(0xffffff, 0.5);
-  directionalLight.position.set(5, 3, 5);
-  scene.add(directionalLight);
-
-  // Create the shirt
-  createShirt(colors[0]);
-
-  // Add the color options to the HTML
-  const colorOptions = document.getElementById('color-options');
-  colors.forEach(color => {
-    const button = document.createElement('button');
-    button.innerHTML = color.name;
-    button.style.backgroundColor = '#' + color.value.toString(16);
-    button.addEventListener('click', () => {
-      changeShirtColor(color);
+  // add event listener for color picker
+  colorPicker.addEventListener("input", function () {
+    const color = this.value;
+    shirt.traverse(function (child) {
+      if (child.isMesh) {
+        child.material.color.set(color);
+      }
     });
-    colorOptions.appendChild(button);
   });
 }
 
-// Define the function to animate the scene
+// animate function
 function animate() {
   requestAnimationFrame(animate);
-  controls.update();
   renderer.render(scene, camera);
+  controls.update();
 }
 
-// Call the init function to create the scene
+// call init and animate functions
 init();
-
-// Call the animate function to animate the scene
 animate();
