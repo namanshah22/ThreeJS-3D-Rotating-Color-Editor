@@ -1,5 +1,6 @@
-import * as THREE from './three.m.js';
+//import * as THREE from './three.m.js';
 //import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import * as THREE from './node_modules/three';
 import { GLTFLoader } from './node_modules/three/examples/jsm/loaders/GLTFLoader.js';
 
 let camera, scene, renderer, controls, shirt;
